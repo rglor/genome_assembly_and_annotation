@@ -6,7 +6,7 @@ Preliminary QC of your sequences can be completed by applying [`fastqc`](http://
 fastqc -k 6 *
 ```
 
-If your sequences look OK after preliminary QC, its time to get your sequences ready for downstream analyses by trimming adaptors and eliminating low quality sequences and basecalls. Here we do this operation on the reads generated from the short insert library. We are going to do this by using the function `cutadapt` to (1) trim Illumina adapter sequences, (2) discard reads <75 bp in length and (3) perform gentle trimming of low quality basecalls.
+If your sequences look OK after preliminary QC, its time to get your sequences ready for downstream analyses by trimming adaptors and eliminating low quality sequences and basecalls. Here we do this operation on the reads generated from the short insert library. We are going to do this by using the function `cutadapt` to (1) trim Illumina adapter sequences, (2) discard reads <75 bp in length and (3) perform gentle trimming of low quality basecalls. This process should take around 12 hours to complete for a raw sequence file containing around 500 million 100-150 bp reads.
 ```
 #PBS -N cutadapt_short.sh
 #PBS -l nodes=1:ppn=1:avx,mem=16000m,walltime=48:00:00
