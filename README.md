@@ -147,6 +147,7 @@ rm -rf $work_dir
 ```
 
 Step 6b: RepeatModeler
+------
 First run RepeatModeler
 ```
 #PBS -N repeatmodeler_dovetail.sh
