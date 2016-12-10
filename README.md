@@ -22,9 +22,9 @@ cutadapt -a AGATCGGAAGAGC -A AGATCGGAAGAGC -q 5 -m 25 -o Short_trimmed_R1.fastq.
 ```
 After trimming is complete, use `fastqc` on the resulting files to check that adapters have been trimmed and that the newly generated `fastq` files look good. 
 
-Step 3: Correct Sequencing Errors With Quake
+Step 3: Correct Sequencing Errors
 ======
-Although Illumina is generally regarded as a relatively error-free sequencing method, your sequences will still include plenty of errors. One way to fix these types of sequencing erros is to use a k-mer error correction framework such as EULER or Quake. We use [Quake](http://www.cbcb.umd.edu/software/quake/index.html) here. Running Quake is fairly straightforward, with simple instructions available via the [program's online manual](http://www.cbcb.umd.edu/software/quake/manual.html). If you are uncertain of what k-mer size to use, the [Quake FAQ has a suggestion](http://www.cbcb.umd.edu/software/quake/faq.html). Quake can't unzip zipped sequence files on the fly; in the script below, I attempt to do this procedure without taking up too much space by unzipping on the compute node and compressing before copying back to the scratch directory. 
+Although Illumina is generally regarded as a relatively error-free sequencing method, your sequences will still include plenty of errors. One way to fix these types of sequencing erros is to use a k-mer error correction framework such as EULER or Quake. We use [Quake](http://www.cbcb.umd.edu/software/quake/index.html) here. Quake uses Jellyfish for k-mer counting. Running Quake is fairly straightforward, with simple instructions available via the [program's online manual](http://www.cbcb.umd.edu/software/quake/manual.html). If you are uncertain of what k-mer size to use, the [Quake FAQ has a suggestion](http://www.cbcb.umd.edu/software/quake/faq.html). Quake can't unzip zipped sequence files on the fly; in the script below, I attempt to do this procedure without taking up too much space by unzipping on the compute node and compressing before copying back to the scratch directory. 
 ```
 #PBS -N quake_short
 #PBS -q default -l nodes=1:ppn=24:avx,mem=50000m,walltime=148:00:00,file=300gb
