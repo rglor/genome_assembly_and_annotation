@@ -24,7 +24,26 @@ After trimming is complete, use `fastqc` on the resulting files to check that ad
 
 Step 3: Correct Sequencing Errors With Quake
 ======
-http://www.cbcb.umd.edu/software/quake/index.html
+Quake can't unzip on the fly. In the script below, I attempt to do this procedure without taking up too much space. http://www.cbcb.umd.edu/software/quake/index.html
+```
+#PBS -N quake_short
+#PBS -q default -l nodes=1:ppn=24:avx,mem=50000m,walltime=148:00:00,file=300gb
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/Quake
+#PBS -j oe
+#PBS -o quake_short_error
+
+work_dir=$(mktemp -d)
+mkdir $work_dir
+gzip -dc /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed_R* $work_dir
+quake.py -f $work_dir/Short_trimmed_R2.fastq $work_dir/Short_trimmed_R1.fastq -k 17 -p 24
+gzip $work_dir/*fastq
+rm $work_dir/Short_trimmed_R1.fastq.gz
+rm $work_dir/Short_trimmed_R2.fastq.gz
+mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Quake
+rm -rf $work_dir
+``
 
 Step 4: Genome Completeness, Coverage and Size
 ======
@@ -42,7 +61,7 @@ Mapping short reads back to the final genome is a basic way of assessing overall
 #PBS -o mapping_dovetail_short_error
 
 bowtie2-build /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta Dovetail_bowtie_DB.fasta
-bowtie2--local --no-unal -x Dovetail_bowtie_DB.fasta -q -1 /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed_R1.fastq.gz -2 /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed_R2.fastq.gz | samtools view -Sb - | samtools sort -no - - > bowtie2.dovetail.nameSorted.bam
+bowtie2 --local --no-unal -x Dovetail_bowtie_DB.fasta -q -1 /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed_R1.fastq.gz -2 /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed_R2.fastq.gz | samtools view -Sb - | samtools sort -no - - > bowtie2.dovetail.nameSorted.bam
 SAM_nameSorted_to_uniq_count_stats.pl bowtie2.dovetail.nameSorted.bam > bowtie_dovetail_mapping_summary
 
 ```
@@ -107,6 +126,59 @@ analyze_blastPlus_topHit_coverage.pl blastx.outfmt6 /scratch/a499a400/anolis/dov
 Step 6: Assess Repetitive Content of Genome
 ======
 We are going to use the function `RepeatMasker` to generate a basic assessment of repetitive content of our genome. We will use the basic function `RepeatMasker` to identify repetitive content from the RepeatMasker database. We will then use the function `RepeatModeler` to generate a library of repetitive elements for our species of interest. Similar processes are also integrated in Maker2.
+
+Step 6a: RepeatMasker
+------
+```
+#PBS -N repeatmasker_dovetail.sh
+#PBS -q default -l nodes=1:ppn=24:avx,mem=64000m,walltime=148:00:00,file=200gb
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/RepeatMasker
+#PBS -j oe
+#PBS -o repeatmasker_dovetail_error
+
+work_dir=$(mktemp -d)
+mkdir $work_dir
+cp /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta $work_dir
+RepeatMasker -e ncbi -species vertebrates $work_dir/trunk_anole_19Jun2016_xkeD9.fasta >> RepeatMasker_Dovetail.log
+mv $work_dir/ /scratch/glor_lab/rich/distichus_genome/RepeatMasker
+rm -rf $work_dir
+```
+
+Step 6b: RepeatModeler
+First run RepeatModeler
+```
+#PBS -N repeatmodeler_dovetail.sh
+#PBS -l nodes=1:ppn=24:avx,mem=64000m,walltime=148:00:00
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/RepeatModeler
+#PBS -j oe
+#PBS -o repeatmodeler_dovetail_error
+
+BuildDatabase -name distichus_dovetail -engine ncbi /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta
+RepeatModeler -engine ncbi -pa 24 -database distichus_dovetail
+```
+
+Then run RepeatMasker with RepeatModeler output.
+```
+#PBS -N repeatmasker_modeler_dovetail.sh
+#PBS -q default -l nodes=1:ppn=24:avx,mem=64000m,walltime=148:00:00,file=200gb
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/RepeatModeler
+#PBS -j oe
+#PBS -o repeatmasker_modelerdovetail_error
+
+work_dir=$(mktemp -d)
+mkdir $work_dir
+cp /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta $work_dir
+RepeatMasker -lib /scratch/glor_lab/rich/distichus_genome/RepeatModeler/RM_101306.FriDec91754042016/consensi.fa.classified $work_dir/trunk_anole_19Jun2016_xkeD9.fasta >> RepeatMasker_Modeler_Dovetail.log
+mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/RepeatModeler/
+rm -rf $work_dir
+```
+
 Step 7: Genome Annotation in Maker2
 ======
 Give Maker: assembled genome fasta file, transcripts, A. carolinensis proteome, repeat library from distichus, reference repeat library from vertebrates, softmasking
