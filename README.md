@@ -43,7 +43,7 @@ rm $work_dir/Short_trimmed_R1.fastq.gz
 rm $work_dir/Short_trimmed_R2.fastq.gz
 mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Quake
 rm -rf $work_dir
-``
+```
 
 Step 4: Genome Completeness, Coverage and Size
 ======
