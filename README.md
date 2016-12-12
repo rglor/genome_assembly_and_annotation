@@ -50,6 +50,27 @@ rm -rf $work_dir
 ```
 Step 3b: Trowel
 -----
+For more on Trowel, see the publication responsible for this tool ([Lim et al. 2014](http://dx.doi.org/10.1093/bioinformatics/btu513)).
+```
+#PBS -N trowel_short
+#PBS -q bigm -l nodes=1:ppn=24:avx,mem=512000m,walltime=148:00:00,file=300gb
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -j oe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/Trowel
+#PBS -o trowel_short_error
+
+work_dir=$(mktemp -d)
+mkdir $work_dir
+cp /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed* $work_dir
+gunzip -c $work_dir/Short_trimmed_R*
+trowel -k 17 -t 24 -f files_short.txt
+gzip $work_dir/*fastq
+rm $work_dir/Short_trimmed_R1.fastq.gz
+rm $work_dir/Short_trimmed_R2.fastq.gz
+mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Trowel
+rm -rf $work_dir
+```
 
 Step 4: Genome Completeness, Coverage and Size
 ======
