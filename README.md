@@ -24,7 +24,11 @@ After trimming is complete, use `fastqc` on the resulting files to check that ad
 
 Step 3: Correct Sequencing Errors
 ======
-Although Illumina is generally regarded as a relatively error-free sequencing method, your sequences will still include plenty of errors, most of which will be substitution errors. One way to fix these types of sequencing erros is to use a k-mer error correction framework such as EULER or Quake ([Kelley et al. 2010](http://genomebiology.com/2010/11/11/R116)). The basic idea of these approaches involves identification of particularly low frequency k-mers that are likely the result of sequencing errors. The [publication introducing Quake](http://genomebiology.com/2010/11/11/R116) has a nice introduction to the underlying algorithms. We use [Quake](http://www.cbcb.umd.edu/software/quake/index.html) here. Quake uses Jellyfish for k-mer counting. Running Quake is fairly straightforward, with simple instructions available via the [program's online manual](http://www.cbcb.umd.edu/software/quake/manual.html). If you are uncertain of what k-mer size to use, the [Quake FAQ has a suggestion](http://www.cbcb.umd.edu/software/quake/faq.html). Quake can't unzip zipped sequence files on the fly; in the script below, I attempt to do this procedure without taking up too much space by unzipping on the compute node and compressing before copying back to the scratch directory. 
+Although Illumina is generally regarded as a relatively error-free sequencing method, your sequences will still include plenty of errors, most of which will be substitution errors. One way to fix these types of sequencing erros is to use a k-mer spectrum error correction framework such as EULER or Quake ([Kelley et al. 2010](http://genomebiology.com/2010/11/11/R116)). The basic idea of these approaches involves identification of particularly low frequency k-mers that are likely the result of sequencing errors. The [publication introducing Quake](http://genomebiology.com/2010/11/11/R116) has a nice introduction to the underlying algorithms. More recently Trowel has been introduced and has the advantage of incorporating information on quality scores.
+
+Step 3a: Quake
+-----
+We use [Quake](http://www.cbcb.umd.edu/software/quake/index.html) here. Quake uses Jellyfish for k-mer counting. Running Quake is fairly straightforward, with simple instructions available via the [program's online manual](http://www.cbcb.umd.edu/software/quake/manual.html). If you are uncertain of what k-mer size to use, the [Quake FAQ has a suggestion](http://www.cbcb.umd.edu/software/quake/faq.html). Quake can't unzip zipped sequence files on the fly; in the script below, I attempt to do this procedure without taking up too much space by unzipping on the compute node and compressing before copying back to the scratch directory. 
 ```
 #PBS -N quake_short
 #PBS -q default -l nodes=1:ppn=24:avx,mem=50000m,walltime=148:00:00,file=300gb
@@ -44,6 +48,8 @@ rm $work_dir/Short_trimmed_R2.fastq.gz
 mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Quake
 rm -rf $work_dir
 ```
+Step 3b: Trowel
+-----
 
 Step 4: Genome Completeness, Coverage and Size
 ======
@@ -180,7 +186,12 @@ mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/RepeatModeler/
 rm -rf $work_dir
 ```
 
-Step 7: Genome Annotation in Maker2
+Step 7: *Ab initio* Gene Prediction With AUGUSTUS
+======
+We are going to run a preliminary ab initio assembly using [AUGUSTUS](http://dx.doi.org/10.1093/bioinformatics/btg1080).
+
+
+Step 8: Genome Annotation in Maker2
 ======
 Give Maker: assembled genome fasta file, transcripts, A. carolinensis proteome, repeat library from distichus, reference repeat library from vertebrates, softmasking
 Use BUSCO output as initial parameters for Augustus/Maker. May need to use long flag with busco
