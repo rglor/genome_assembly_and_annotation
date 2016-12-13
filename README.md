@@ -22,11 +22,11 @@ cutadapt -a AGATCGGAAGAGC -A AGATCGGAAGAGC -q 5 -m 25 -o Short_trimmed_R1.fastq.
 ```
 After trimming is complete, use `fastqc` on the resulting files to check that adapters have been trimmed and that the newly generated `fastq` files look good. 
 
-Step 3: Correct Sequencing Errors
+Step 2: Correct Sequencing Errors
 ======
 Although Illumina is generally regarded as a relatively error-free sequencing method, your sequences will still include plenty of errors, most of which will be substitution errors. One way to fix these types of sequencing erros is to use a k-mer spectrum error correction framework such as EULER or Quake ([Kelley et al. 2010](http://genomebiology.com/2010/11/11/R116)). The basic idea of these approaches involves identification of particularly low frequency k-mers that are likely the result of sequencing errors. The [publication introducing Quake](http://genomebiology.com/2010/11/11/R116) has a nice introduction to the underlying algorithms. More recently Trowel has been introduced and has the advantage of incorporating information on quality scores.
 
-Step 3a: Quake
+Step 2a: Quake
 -----
 We use [Quake](http://www.cbcb.umd.edu/software/quake/index.html) here. Quake uses Jellyfish for k-mer counting. Running Quake is fairly straightforward, with simple instructions available via the [program's online manual](http://www.cbcb.umd.edu/software/quake/manual.html). If you are uncertain of what k-mer size to use, the [Quake FAQ has a suggestion](http://www.cbcb.umd.edu/software/quake/faq.html). Quake can't unzip zipped sequence files on the fly; in the script below, I attempt to do this procedure without taking up too much space by unzipping on the compute node and compressing before copying back to the scratch directory. 
 ```
@@ -48,7 +48,7 @@ rm $work_dir/Short_trimmed_R2.fastq.gz
 mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Quake
 rm -rf $work_dir
 ```
-Step 3b: Trowel
+Step 2b: Trowel
 -----
 For more on Trowel, see the publication responsible for this tool ([Lim et al. 2014](http://dx.doi.org/10.1093/bioinformatics/btu513)).
 ```
@@ -70,6 +70,21 @@ rm $work_dir/Short_trimmed_R1.fastq.gz
 rm $work_dir/Short_trimmed_R2.fastq.gz
 mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Trowel
 rm -rf $work_dir
+```
+Step 3:*De novo* Assembly of Small Insert Library with DISCOVAR
+======
+```
+#!/bin/bash
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=1450G
+#SBATCH --partition=large-shared
+#SBATCH -A kan110
+#SBATCH --no-requeue
+#SBATCH -t 2880 
+
+export MALLOC_PER_THREAD=1
+/home/aalexand/bin/discovardenovo-52488/bin/DiscovarDeNovo READS=/oasis/scratch/comet/aalexand/temp_project/combined_Anolis_Genome_R1.fastq,/oasis/scratch/comet/aalexand/temp_project/combined_Anolis_Genome_R2.fastq OUT_DIR=/oasis/scratch/comet/aalexand/temp_project/17Feb2016 NUM_THREADS=15 MAX_MEM_GB=1000 MEMORY_CHECK=True
 ```
 
 Step 4: Genome Completeness, Coverage and Size
