@@ -121,7 +121,31 @@ Total aligned rnaseq fragments: 32254986
 ```
 Step 4b: 17-mer Estimate of Genome Coverage
 ------
-Use Jellyfish and associated scripts (https://github.com/josephryan/estimate_genome_size.pl) to generate estimate of coverage using methods first used in the Panda genome paper.
+We going to use methods first used in the Panda genome paper ([Ruiqiang et al. 2010](http://dx.doi.org/10.1038/nature08696)). We will begin by using the k-mer counting software `jellyfish` to generate a distribution of k-mer coverage. This operation shouldn't take more than 12 hours when conducted on our short insert library including 183M paired reads.
+
+```
+#PBS -N jellyfish_short
+#PBS -q bigm
+#PBS -l nodes=1:ppn=16:avx,mem=20000m,walltime=12:00:00
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -j oe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/Jellyfish
+#PBS -o jellyfish_short_error
+
+work_dir=$(mktemp -d)
+cat /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed_R1.fastq /scratch/glor_lab/rich/distichus_genome/Short_Insert/Short_trimmed_R2.fastq > $work_dir/Short_trimmed_merged.fastq
+jellyfish count -m 17 -o fastq.counts -C $work_dir/Short_trimmed_merged.fastq -s 10000000000 -U 500 -t 16
+rm $work_dir/Short_trimmed_merged.fastq
+mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Jellyfish/
+rm -rf $work_dir
+```
+
+We can then make a histogram from this data as follows.
+```
+jellyplot.pl fastq.counts > fastq.counts.histo
+```
+The resulting histogram file can then be uploaded and evaluated by [GenomeScope](http://qb.cshl.edu/genomescope/), an online tool capable of providing assembly free estimates of genome size, coverage, heterozygosity and other statistics.
 
 Step 5: Assess Genome Completeness by Identifying Coverage of Expected Proteins
 ======
@@ -139,7 +163,7 @@ Step 5a: Benchmarking Universal Single-Copy Orthologs (BUSCO)
 #PBS -j oe
 #PBS -o busco_dovetail_error
 
-BUSCO.py -o busco_dovetail -i /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta -l /scratch/glor_lab/rich/distichus_genome_RNAseq/vertebrata_odb9 -m tran
+BUSCO.py -o busco_dovetail -i /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta -l /scratch/glor_lab/rich/distichus_genome_RNAseq/vertebrata_odb9 -m geno
 ```
 After running this operation, you should find a simple summary of your data (`short_summary_busco_dewlap.txt`) in a folder called `run_busco_name` that will tell you how many complete BUSCOs were recovered in your dataset.
 ```
