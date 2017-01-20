@@ -211,7 +211,7 @@ rm -rf $work_dir
 
 Step 6b: RepeatModeler
 ------
-First run RepeatModeler
+An alternative to the homology-based assessment of repetitive content implemented above is to infer repetitive content from your genome using the program [RepeatModeler](http://www.repeatmasker.org/RepeatModeler.html), which uses two de novo repeat finding functions -- RECON and Repeatscout -- to "build, refine and classify consensus models of putative interspersed repeats." Once RepeatModeler has generated models for repeats in your genome, you can then use RepeatMasker to characterize the abundance of these repeats in your genome and to mask repetitive content. The first step is to run RepeatModeler on your assembled genome.
 ```
 #PBS -N repeatmodeler_dovetail.sh
 #PBS -l nodes=1:ppn=24:avx,mem=64000m,walltime=148:00:00
@@ -221,14 +221,14 @@ First run RepeatModeler
 #PBS -j oe
 #PBS -o repeatmodeler_dovetail_error
 
-BuildDatabase -name distichus_dovetail -engine ncbi /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta
+BuildDatabase -name distichus_dovetail -engine ncbi /scratch/a499a400/anolis/dovetail/scrubbed_genome.fasta
 RepeatModeler -engine ncbi -pa 24 -database distichus_dovetail
 ```
 
 Then run RepeatMasker with RepeatModeler output.
 ```
 #PBS -N repeatmasker_modeler_dovetail.sh
-#PBS -q default -l nodes=1:ppn=24:avx,mem=64000m,walltime=148:00:00,file=200gb
+#PBS -q long -l nodes=1:ppn=16:avx,mem=64000m,walltime=296:00:00,file=200gb
 #PBS -M glor@ku.edu
 #PBS -m abe
 #PBS -d /scratch/glor_lab/rich/distichus_genome/RepeatModeler
@@ -236,11 +236,64 @@ Then run RepeatMasker with RepeatModeler output.
 #PBS -o repeatmasker_modelerdovetail_error
 
 work_dir=$(mktemp -d)
-mkdir $work_dir
-cp /scratch/a499a400/anolis/dovetail/trunk_anole_19Jun2016_xkeD9.fasta $work_dir
-RepeatMasker -lib /scratch/glor_lab/rich/distichus_genome/RepeatModeler/RM_101306.FriDec91754042016/consensi.fa.classified $work_dir/trunk_anole_19Jun2016_xkeD9.fasta >> RepeatMasker_Modeler_Dovetail.log
+cp /scratch/a499a400/anolis/dovetail/scrubbed_genome.fasta $work_dir
+RepeatMasker -lib /scratch/glor_lab/rich/distichus_genome/RepeatModeler/RM_91293.WedDec210322572016/consensi.fa.classified $work_dir/scrubbed_genome.fasta >> $work_dir/RepeatMasker_Modeler_Dovetail.log
 mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/RepeatModeler/
 rm -rf $work_dir
+```
+The output of this process will return both a repeat masked version of your genome as well as a table that summarizes repeat cotent.
+```
+==================================================
+file name: scrubbed_genome.fasta
+sequences:        878866
+total length: 3184760166 bp  (3157651864 bp excl N/X-runs)
+GC level:         41.38 %
+bases masked: 1623293304 bp ( 50.97 %)
+==================================================
+               number of      length   percentage
+               elements*    occupied  of sequence
+--------------------------------------------------
+SINEs:           654420    107661251 bp    3.38 %
+      ALUs            0            0 bp    0.00 %
+      MIRs       162403     21234576 bp    0.67 %
+
+LINEs:           2291376    644222230 bp   20.23 %
+      LINE1      201210     86424391 bp    2.71 %
+      LINE2      857552    202300976 bp    6.35 %
+      L3/CR1     657977    191925128 bp    6.03 %
+
+LTR elements:    261422     80392966 bp    2.52 %
+      ERVL        23709      3172739 bp    0.10 %
+      ERVL-MaLRs      0            0 bp    0.00 %
+      ERV_classI  45930     14408218 bp    0.45 %
+      ERV_classII 17921      4979932 bp    0.16 %
+
+DNA elements:    1956439    309567665 bp    9.72 %
+     hAT-Charlie 306081     58862267 bp    1.85 %
+     TcMar-Tigger342444     65377695 bp    2.05 %
+
+Unclassified:    1823490    421033447 bp   13.22 %
+
+Total interspersed repeats:1562877559 bp   49.07 %
+
+
+Small RNA:         2350       456486 bp    0.01 %
+
+Satellites:       18697      4300015 bp    0.14 %
+Simple repeats:  932222     50330769 bp    1.58 %
+Low complexity:   90897      9239884 bp    0.29 %
+==================================================
+
+* most repeats fragmented by insertions or deletions
+  have been counted as one element
+
+
+The query species was assumed to be homo
+RepeatMasker version open-4.0.5 , default mode
+
+run with rmblastn version 2.2.27+
+The query was compared to classified sequences in ".../consensi.fa.classified"
+RepBase Update 20140131, RM database version 20140131
 ```
 
 Step 7: *Ab initio* Gene Prediction With AUGUSTUS
