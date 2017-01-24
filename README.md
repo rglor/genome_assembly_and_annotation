@@ -24,7 +24,7 @@ After trimming is complete, use `fastqc` on the resulting files to check that ad
 
 Step 2: Assembly Free Estimates of Genome Coverage, Size and Heterozygosity
 ======
-We going to use methods first used in the Panda genome paper ([Ruiqiang et al. 2010](http://dx.doi.org/10.1038/nature08696)). We will begin by using the k-mer counting software `jellyfish` to generate a distribution of k-mer coverage. This operation shouldn't take more than 12 hours when conducted on our short insert library including 183M paired reads.
+We will use an assembly-free k-mer counting method to estimate genome size, genome coverage and heterozygosity. Such k-mer counting approaches are widely used in genome studies. Although numerous applications for interpreting k-mer counts have been introduced (e.g., [GenomeScope](http://qb.cshl.edu/genomescope/), [estimate Genomesize.pl](http://josephryan.github.io/estimate_genome_size.pl/)), most rely on the rapid k-mer counting program `[jellyfish](http://www.genome.umd.edu/jellyfish.html)` to generate k-mer counts. Selecting a k-mer size for these analyses is non-trivial. Advice on selecting a k-mer size for various types of applications can be found in a few places, including the FAQ for the error-correction function [Quake](http://www.cbcb.umd.edu/software/quake/faq.html) and section 2 of the supplemental material for the program [KAT](https://doi.org/10.1093/bioinformatics/btw663). One approach that is widely-cited in recent genome papers follows the authors of the panda genome paper in relying on analyses of 17-mers ([Ruiqiang et al. 2010](http://dx.doi.org/10.1038/nature08696)), but other studies suggest that large k-mer sizes are appropriate for large complex genomes. However, large k-mer sizes can lead to longer runs and more intense memory demands. Running Jellyfish shouldn't take more than 12 hours when conducted on our short insert library including 183M paired reads.
 
 ```
 #PBS -N jellyfish_short
@@ -43,7 +43,6 @@ rm $work_dir/Short_trimmed_merged.fastq
 mv $work_dir/* /scratch/glor_lab/rich/distichus_genome/Jellyfish/
 rm -rf $work_dir
 ```
-
 We can then make a histogram from this data as follows.
 ```
 jellyplot.pl fastq.counts > fastq.counts.histo
