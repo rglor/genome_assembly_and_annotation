@@ -300,8 +300,11 @@ Step 7: *Ab initio* Gene Prediction With AUGUSTUS
 We are going to run a preliminary ab initio assembly using [AUGUSTUS](http://dx.doi.org/10.1093/bioinformatics/btg1080).
 
 
-Step 8: Genome Annotation in Maker2
+Step 8: Genome Annotation in Braker1
 ======
+Braker1 is a relatively new platform for *de novo* genome annotation. Braker requires as input two files: (1) a '.bam' file with transcriptome mapping information and (2) a repeat masked '.fasta' file for your assembled genome. We will generate the required '.bam' file using the spliced alignment tool tophat. For the '.fasta' genome file, we will use the output from Repeatmasker. 
+
+
 Give Maker: assembled genome fasta file, transcripts, A. carolinensis proteome, repeat library from distichus, reference repeat library from vertebrates, softmasking
 Use BUSCO output as initial parameters for Augustus/Maker. May need to use long flag with busco
 Conflict over whether using bowtie output or raw transcripts does better in Maker
