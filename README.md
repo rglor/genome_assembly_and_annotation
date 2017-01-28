@@ -302,7 +302,36 @@ We are going to run a preliminary ab initio assembly using [AUGUSTUS](http://dx.
 
 Step 8: Genome Annotation in Braker1
 ======
-Braker1 is a relatively new platform for *de novo* genome annotation. Braker requires as input two files: (1) a '.bam' file with transcriptome mapping information and (2) a repeat masked '.fasta' file for your assembled genome. We will generate the required '.bam' file using the spliced alignment tool tophat. For the '.fasta' genome file, we will use the output from Repeatmasker. 
+Braker1 is a relatively new platform for *de novo* genome annotation. Braker requires as input two files: (1) a '.bam' file with transcriptome mapping information and (2) a repeat masked '.fasta' file for your assembled genome. We will generate the required '.bam' file using the spliced junction mapping tool tophat. This operation is considerably different from the mapping exercise discussed previously becuase it involves use of program that is able to map RNA reads across spliced portions of the genome. For the '.fasta' genome file, we will use the output from Repeatmasker.
+
+First, we can use the following commands to generate the required '.bam' file.
+
+```
+#PBS -N tophat_dovetail_short
+#PBS -q bigm -l nodes=1:ppn=24:avx,mem=500000m,walltime=296:00:00
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/Cufflinks
+#PBS -j oe
+#PBS -o tophat_dovetail_short_error
+
+bowtie2-build /scratch/a499a400/anolis/dovetail/scrubbed_genome.fasta Dovetail_bowtie_DB.fasta
+tophat -r 0 Dovetail_bowtie_DB.fasta /scratch/glor_lab/rich/distichus_genome_RNAseq/All_Tissues/decontam_RNA_1.fastq.gz /scratch/glor_lab/rich/distichus_genome_RNAseq/All_Tissues/decontam_RNA_2.fastq.gz
+```
+
+Before running Braker, you will need to sure that you have access to a number of important dependencies, including the general tools for dealing with BAM and SAM formatted files (BAMtools and SAMtools) and the *de novo* genome annotation tools (AUGUSTUS and Genemark). You will have an opportunity in the input file to tell Braker where these required dependencies are located.
+
+```
+#PBS -N braker_allRNA_dovetailScrubbed
+#PBS -q bigm -l nodes=1:ppn=24:avx,mem=500000m,walltime=296:00:00
+#PBS -M glor@ku.edu
+#PBS -m abe
+#PBS -d /scratch/glor_lab/rich/distichus_genome/Braker1
+#PBS -j oe
+#PB. -o braker_allRNA_dovetailScrubbed_error
+
+braker.pl --genome=/scratch/a499a400/anolis/dovetail/scrubbed_genome.fasta --bam=/scratch/glor_lab/rich/distichus_genome/Cufflinks/tophat_out/accepted_hits.bam --AUGUSTUS_CONFIG_PATH=/tools/cluster/6.2/augustus/3.2.2/config --GENEMARK_PATH=/tools/cluster/6.2/genemark-et/4.32 --BAMTOOLS_PATH=/tools/cluster/6.2/bamtools/2.3.0/bin --SAMTOOLS_PATH=/tools/cluster/6.2/samtools/1.2
+```
 
 
 Give Maker: assembled genome fasta file, transcripts, A. carolinensis proteome, repeat library from distichus, reference repeat library from vertebrates, softmasking
