@@ -47,7 +47,7 @@ We can then make a histogram from this data as follows.
 ```
 jellyplot.pl fastq.counts > fastq.counts.histo
 ```
-The resulting histogram file can then be uploaded and evaluated by [GenomeScope](http://qb.cshl.edu/genomescope/), an online tool capable of providing assembly free estimates of genome size, coverage, heterozygosity and other statistics.
+The resulting histogram file can then be uploaded and evaluated by [GenomeScope](http://qb.cshl.edu/genomescope/), an online tool capable of providing assembly free estimates of genome size, coverage, heterozygosity and other statistics. For more information on Genomescope, please consult this [PDF version of a poster summarizing the platform](http://schatzlab.cshl.edu/publications/posters/2016/2016.AGBT.GenomeScope.pdf) and the [Genomescope github](https://github.com/schatzlab/genomescope).
 
 
 Step 3: Correct Sequencing Errors
